@@ -1,0 +1,775 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<!--Converted with LaTeX2HTML 2002-2-1 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>rtpbreak 1.3a</TITLE>
+<META NAME="description" CONTENT="rtpbreak 1.3a">
+<META NAME="keywords" CONTENT="rtpbreak_en">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2002-2-1">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="rtpbreak_en.css">
+
+</HEAD>
+
+<BODY >
+<H1 ALIGN="CENTER">rtpbreak 1.3a</H1>
+<DIV CLASS="author_info">
+
+<P ALIGN="CENTER"><STRONG>xenion - Michele Dallachiesa</STRONG></P>
+<P ALIGN="CENTER"><I>michele dot dallachiesa at poste dot it</I></P>
+</DIV>
+
+<BR>
+
+<H2><A NAME="SECTION00010000000000000000">
+Contents</A>
+</H2>
+<!--Table of Contents-->
+
+<UL CLASS="TofC">
+<LI><A NAME="tex2html14"
+  HREF="rtpbreak_en.html#SECTION00020000000000000000">Introduction</A>
+<LI><A NAME="tex2html15"
+  HREF="rtpbreak_en.html#SECTION00030000000000000000">Usage</A>
+<LI><A NAME="tex2html16"
+  HREF="rtpbreak_en.html#SECTION00040000000000000000">Examples</A>
+<UL>
+<LI><A NAME="tex2html17"
+  HREF="rtpbreak_en.html#SECTION00041000000000000000">Record, mix and replay a VoIP call</A>
+<LI><A NAME="tex2html18"
+  HREF="rtpbreak_en.html#SECTION00042000000000000000">Analyze an RTP session</A>
+<LI><A NAME="tex2html19"
+  HREF="rtpbreak_en.html#SECTION00043000000000000000">Particular scenarios</A>
+</UL>
+<BR>
+<LI><A NAME="tex2html20"
+  HREF="rtpbreak_en.html#SECTION00050000000000000000">How it works</A>
+<LI><A NAME="tex2html21"
+  HREF="rtpbreak_en.html#SECTION00060000000000000000">Dependencies and compilation</A>
+<LI><A NAME="tex2html22"
+  HREF="rtpbreak_en.html#SECTION00070000000000000000">Links</A>
+</UL>
+<!--End of Table of Contents-->
+<P>
+
+<H1><A NAME="SECTION00020000000000000000">
+Introduction</A>
+</H1>
+With rtpbreak you can detect, reconstruct and analyze any RTP session. It doesn't require the presence of RTCP packets and works independently form the used signaling protocol (SIP, H.323, SCCP, ...). The input is a sequence of packets, the output is a set of files you can use as input for other tools (wireshark/tshark, sox, grep/awk/cut/cat/sed, ...). It supports also wireless (AP_DLT_IEEE802_11) networks. This is a list of scenarios where rtpbreak is a good choice:
+
+<UL>
+<LI>reconstruct any RTP stream with an unknown or unsupported signaling protocol
+</LI>
+<LI>reconstruct any RTP stream in wireless networks, while doing channel hopping (VoIP activity detector)
+</LI>
+<LI>reconstruct and decode any RTP stream in batch mode (with sox, asterisk, ...)
+</LI>
+<LI>reconstruct any already existing RTP stream
+</LI>
+<LI>reorder the packets of any RTP stream for later analysis (with tshark, wireshark, ...)
+</LI>
+<LI>build a tiny wireless VoIP tapping system in a single chip Linux unit
+</LI>
+<LI>build a complete VoIP tapping system (rtpbreak would be just the RTP dissector module!)
+</LI>
+</UL>
+This project is released under license GPL version 2. 
+
+<H1><A NAME="SECTION00030000000000000000">
+Usage</A>
+</H1>
+The unique mandatory input parameter is the packet source (network interface or pcap file). This is the list of  accepted parameters:
+
+<P>
+<DL>
+<DT><STRONG>INPUT</STRONG></DT>
+<DD><DL>
+<DT><STRONG>-r &lt;str&gt;</STRONG></DT>
+<DD>Read packets from file (pcap format) &lt;str&gt;
+</DD>
+<DT><STRONG>-i &lt;str&gt;</STRONG></DT>
+<DD>Read packets from network interface &lt;str&gt;
+</DD>
+<DT><STRONG>-L &lt;int&gt;</STRONG></DT>
+<DD>Force the datalink header length to &lt;int&gt; bytes. This is useful if the interface type is not correctly recognized by libpcap
+</DD>
+</DL>
+
+<P>
+</DD>
+<DT><STRONG>OUTPUT</STRONG></DT>
+<DD><DL>
+<DT><STRONG>-d &lt;str&gt;</STRONG></DT>
+<DD>Set the output directory to &lt;str&gt;
+</DD>
+<DT><STRONG>-w</STRONG></DT>
+<DD>Disable the raw dump of RTP sessions
+</DD>
+<DT><STRONG>-W</STRONG></DT>
+<DD>Disable the pcap dump of RTP sessions
+</DD>
+<DT><STRONG>-g</STRONG></DT>
+<DD>Fill the gaps of lost packets in raw dumps with the last sniffed packet, preventing desynchronization problems when decoding/mixing multiple RTP streams (with sox, ...)
+</DD>
+<DT><STRONG>-n</STRONG></DT>
+<DD>Dump packets passing the single packet pattern but not the multiple packets pattern (the noise packets) to pcap file
+</DD>
+<DT><STRONG>-f</STRONG></DT>
+<DD>Disable stdout logging
+</DD>
+<DT><STRONG>-F</STRONG></DT>
+<DD>Enable syslog logging
+</DD>
+<DT><STRONG>-v</STRONG></DT>
+<DD>Be verbose
+</DD>
+</DL>
+
+<P>
+</DD>
+<DT><STRONG>SELECT</STRONG></DT>
+<DD><DL>
+<DT><STRONG>-m</STRONG></DT>
+<DD>Sniff packets in promiscuous mode
+</DD>
+<DT><STRONG>-p &lt;str&gt;</STRONG></DT>
+<DD>Consider only  packets matching the libpcap filter &lt;str&gt;
+</DD>
+<DT><STRONG>-e</STRONG></DT>
+<DD>Expect an even destination UDP port. The RTP packets must have an even destination UDP port. This should be always true, anyway some VoIP networks (like Yahoo) don't respect this rule
+</DD>
+<DT><STRONG>-u</STRONG></DT>
+<DD>Expect unprivileged source/destination UDP ports (&gt; 1024). This should always be true
+</DD>
+<DT><STRONG>-y &lt;int&gt;</STRONG></DT>
+<DD>The RTP packets must have exactly this payload type. For example, if we want only RTP streams with data encoded in G.711 ulaw, we should add the option -y 0, value obtained from the -k option
+</DD>
+<DT><STRONG>-l &lt;int&gt;</STRONG></DT>
+<DD>The RTP payload length must be exactly &lt;int&gt; bytes
+</DD>
+<DT><STRONG>-t &lt;float&gt;</STRONG></DT>
+<DD>Consider terminated any session without new packets for &lt;float&gt; seconds
+</DD>
+<DT><STRONG>-T &lt;float&gt;</STRONG></DT>
+<DD>Consider a timeout of &lt;float&gt; seconds in the pattern over multiple packets
+</DD>
+<DT><STRONG>-P &lt;int&gt;</STRONG></DT>
+<DD>Consider &lt;int&gt; packets in the pattern over multiple packets
+</DD>
+</DL>
+
+<P>
+</DD>
+<DT><STRONG>EXECUTION</STRONG></DT>
+<DD><DL>
+<DT><STRONG>-Z &lt;str&gt;</STRONG></DT>
+<DD>Run as user &lt;str&gt;
+</DD>
+<DT><STRONG>-D</STRONG></DT>
+<DD>Run in background (option -f implicit)
+</DD>
+</DL>
+
+<P>
+</DD>
+<DT><STRONG>MISC</STRONG></DT>
+<DD><DL>
+<DT><STRONG>-k</STRONG></DT>
+<DD>Dump a list of known RTP payload types. Note that, because of the useless functionality called "Dynamic RTP Payload", those values shouldn't be considered too much. The rtp_payload_type and codec association
+is in fact concorded through the Signaling messages (SIP, H.323, SCCP, ...), assigning new values also for those codecs already having a standard and predefined value
+</DD>
+<DT><STRONG>-h</STRONG></DT>
+<DD>Display a summary of the valid options and exit
+</DD>
+</DL>
+
+<P>
+</DD>
+</DL>
+
+<P>
+The files in the output directory have the following naming scheme: The set of files with pattern <SPAN  CLASS="textit">rtp.x.*</SPAN> refer to the rtpbreak execution number <SPAN  CLASS="textit">x</SPAN>, the subset of files with pattern <SPAN  CLASS="textit">rtp.x.y.*</SPAN> refer to the RTP session number <SPAN  CLASS="textit">y</SPAN> (of the rtpbreak execution number <SPAN  CLASS="textit">x</SPAN>). At each execution and at each RTP session detection, <SPAN  CLASS="textit">x</SPAN> and <SPAN  CLASS="textit">y</SPAN> are respectively incremented. The set of output files of the rtpbreak execution number <SPAN  CLASS="textit">x</SPAN> is organized as follows:
+<DL>
+<DT><STRONG>rtp.x.txt</STRONG></DT>
+<DD>The rtpbreak execution log, always generated
+</DD>
+<DT><STRONG>rtp.x.noise.pcap</STRONG></DT>
+<DD>The noise packets, generated with option <SPAN  CLASS="textit">-n</SPAN> enabled
+</DD>
+<DT><STRONG>rtp.x.y.*</STRONG></DT>
+<DD>For each detected RTP stream <SPAN  CLASS="textit">y</SPAN>:
+<DL>
+<DT><STRONG>rtp.x.y.raw</STRONG></DT>
+<DD>The  transported raw data of the RTP session <SPAN  CLASS="textit">y</SPAN>. Generated by default, can be disabled with option <SPAN  CLASS="textit">-w</SPAN> enabled
+</DD>
+<DT><STRONG>rtp.x.y.pcap</STRONG></DT>
+<DD>The reordered packets of the RTP session <SPAN  CLASS="textit">y</SPAN>. Generated by default, can be disabled with option <SPAN  CLASS="textit">-W</SPAN> enabled
+</DD>
+<DT><STRONG>rtp.x.y.txt</STRONG></DT>
+<DD>The <SPAN  CLASS="textit">y</SPAN>  RTP session log, always generated
+</DD>
+</DL>
+</DD>
+</DL>
+<H1><A NAME="SECTION00040000000000000000">
+Examples</A>
+</H1>
+In this section there are  some commented examples.
+
+<H2><A NAME="SECTION00041000000000000000">
+Record, mix and replay a VoIP call</A>
+</H2>
+Scope: We want to detect, reconstruct and decode a conversation between two VoIP Wireless phones, the final output should be a wav file. First of all, we sniff the packets with rtpbreak (fill gaps, sniff packets in promisc mode, gather packets from network interface wifi0, use './logz/' as output directory):
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ sudo src/rtpbreak -i wifi0 -g -m -d logz
+ + rtpbreak v1.3 running here!
+ + pid: 3580, date/time: 19/02/2008#09:49:21
+ + Configuration
+   + INPUT
+     Packet source: iface 'wifi0'
+     Force datalink header length: disabled
+   + OUTPUT
+     Output directory: 'logz'
+     RTP raw dumps: enabled
+     RTP pcap dumps: enabled
+     Fill gaps: enabled
+     Dump noise: disabled
+     Logfile: 'logz/rtp.0.txt'
+     Logging to stdout: enabled
+     Logging to syslog: disabled
+     Be verbose: disabled
+   + SELECT
+     Sniff packets in promisc mode: enabled
+     Add pcap filter: disabled
+     Expecting even destination UDP port: disabled
+     Expecting unprivileged source/destination UDP ports: disabled
+     Expecting RTP payload type: any
+     Expecting RTP payload length: any
+     Packet timeout: 10.00 seconds
+     Pattern timeout: 0.25 seconds
+     Pattern packets: 5
+   + EXECUTION
+     Running as user/group: root/root
+     Running daemonized: disabled
+ * You can dump stats sending me a SIGUSR2 signal
+ * Reading packets...
+ ! [rtp0] detected: pt=0(g711U) 192.168.0.30:2072 =&gt; 192.168.0.20:2074
+ ! [rtp1] detected: pt=0(g711U) 192.168.0.20:2074 =&gt; 192.168.0.30:2072
+ * [rtp1] probable reverse RTP stream: [rtp0]
+ + Status
+   Alive RTP Sessions: 2
+   Closed RTP Sessions: 0
+   Detected RTP Sessions: 2
+   Flushed RTP packets: 3358
+   Lost RTP packets: 122 (3.51%)
+   Noise (false positive) packets: 0
+ + [rtp1] stats: packets inbuffer=262 flushed=1673 lost=61(3.52%), call_length=1m2s
+ + [rtp0] stats: packets inbuffer=270 flushed=1685 lost=61(3.49%), call_length=1m2s
+ * [rtp1] closed: packets inbuffer=0 flushed=2800 lost=115(3.95%), call_length=1m28s
+ * [rtp0] closed: packets inbuffer=0 flushed=2819 lost=106(3.62%), call_length=1m28s
+--
+Caught SIGINT signal (2), cleaning up...
+--
+ + Status
+   Alive RTP Sessions: 0
+   Closed RTP Sessions: 2
+   Detected RTP Sessions: 2
+   Flushed RTP packets: 5619
+   Lost RTP packets: 221 (3.78%)
+   Noise (false positive) packets: 0
+ + No active RTP streams
+
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+
+<P>
+We've sent a SIGUSR2 signal to the rtpbreak process at call_length=1m2s, forcing a stats print. The final output directory content is the following:
+
+<P>
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ ls -1 logz
+rtp.0.0.pcap
+rtp.0.0.raw
+rtp.0.0.txt
+rtp.0.1.pcap
+rtp.0.1.raw
+rtp.0.1.txt
+rtp.0.txt
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+
+<P>
+Those are the two RTP sessions logs:
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.0.0.txt 
+RTP stream id: rtp.0.0
+Packet source: iface  'wifi0'
+First seen packet: 19/02/2008#09:49:29 (pcap time)
+Stream peers: 192.168.0.30:2072 =&gt; 192.168.0.20:2074
+RTP ssrc: 1695569992
+RTP payload type: 0 (ITU-T G.711 PCMU)
+Last seen packet: 19/02/2008#09:50:57 (pcap time)
+Call length: 1m28s
+Flushed packets: 2819
+Lost packets: 106 (3.62%)
+RTP payload length: 240 bytes (fixed)
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.0.1.txt 
+RTP stream id: rtp.0.1
+Packet source: iface  'wifi0'
+First seen packet: 19/02/2008#09:49:29 (pcap time)
+Stream peers: 192.168.0.20:2074 =&gt; 192.168.0.30:2072
+RTP ssrc: 112268413
+RTP payload type: 0 (ITU-T G.711 PCMU)
+Probable reverse RTP stream id: rtp.0.0
+Last seen packet: 19/02/2008#09:50:57 (pcap time)
+Call length: 1m28s
+Flushed packets: 2800
+Lost packets: 115 (3.95%)
+RTP payload length: 240 bytes (fixed)
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+
+<P>
+Now, we've to decode, mix and replay this recorded call:
+
+<P>
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ sox -r8000 -c1 -t ul logz/rtp.0.0.raw -t wav logz/0.wav
+xenion@gollum:~/dev/rtpbreak-1.3$ sox -r8000 -c1 -t ul logz/rtp.0.1.raw -t wav logz/1.wav
+xenion@gollum:~/dev/rtpbreak-1.3$ sox -m logz/0.wav logz/1.wav logz/call.wav
+xenion@gollum:~/dev/rtpbreak-1.3$ mplayer logz/call.wav
+</PRE>
+
+<P>
+
+<H2><A NAME="SECTION00042000000000000000">
+Analyze an RTP session</A>
+</H2>
+Scope: We want to analyze a pcap file with some RTP streams, using the most aggressive configuration of the detection heuristics. First of all, we reconstruct the RTP streams with rtpbreak:
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ rtpbreak -P2 -t100 -T100 -d logz -r h323.pcap  
+ + rtpbreak v1.3 running here!
+ + pid: 4613, date/time: 19/02/2008#10:18:54
+ + Configuration
+   + INPUT
+     Packet source: rxfile 'h323.pcap'
+     Force datalink header length: disabled
+   + OUTPUT
+     Output directory: 'logz'
+     RTP raw dumps: enabled
+     RTP pcap dumps: enabled
+     Fill gaps: disabled
+     Dump noise: disabled
+     Logfile: 'logz/rtp.1.txt'
+     Logging to stdout: enabled
+     Logging to syslog: disabled
+     Be verbose: disabled
+   + SELECT
+     Sniff packets in promisc mode: disabled
+     Add pcap filter: disabled
+     Expecting even destination UDP port: disabled
+     Expecting unprivileged source/destination UDP ports: disabled
+     Expecting RTP payload type: any
+     Expecting RTP payload length: any
+     Packet timeout: 100.00 seconds
+     Pattern timeout: 100.00 seconds
+     Pattern packets: 2
+   + EXECUTION
+     Running as user/group: xenion/xenion
+     Running daemonized: disabled
+ * You can dump stats sending me a SIGUSR2 signal
+ * Reading packets...
+ ! [rtp0] detected: pt=102(?) 172.16.1.109:5004 =&gt; 172.16.1.105:5012
+ ! [rtp1] detected: pt=0(g711U) 172.16.1.105:5012 =&gt; 172.16.1.109:5004
+ * [rtp1] probable reverse RTP stream: [rtp0]
+ ! [rtp2] detected: pt=31(h261) 172.16.1.109:5006 =&gt; 172.16.1.105:5014
+ * eof reached.
+--
+Caught SIGTERM signal (15), cleaning up...
+--
+ * [rtp2] closed: packets inbuffer=0 flushed=2286 lost=0(0.00%), call_length=4m10s
+ * [rtp1] closed: packets inbuffer=0 flushed=4465 lost=0(0.00%), call_length=4m8s
+ * [rtp0] closed: packets inbuffer=0 flushed=6254 lost=0(0.00%), call_length=4m10s
+ + Status
+   Alive RTP Sessions: 0
+   Closed RTP Sessions: 3
+   Detected RTP Sessions: 3
+   Flushed RTP packets: 13005
+   Lost RTP packets: 0 (0.00%)
+   Noise (false positive) packets: 70
+ + No active RTP streams
+
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+ The output directory content, after running examples 1 and 2, should be the following:
+
+<P>
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ ls -1 logz
+0.wav
+1.wav
+call.wav
+rtp.0.0.pcap
+rtp.0.0.raw
+rtp.0.0.txt
+rtp.0.1.pcap
+rtp.0.1.raw
+rtp.0.1.txt
+rtp.0.txt
+rtp.1.0.pcap
+rtp.1.0.raw
+rtp.1.0.txt
+rtp.1.1.pcap
+rtp.1.1.raw
+rtp.1.1.txt
+rtp.1.2.pcap
+rtp.1.2.raw
+rtp.1.2.txt
+rtp.1.txt
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+The set of files of the second rtpbreak execution have prefix <SPAN  CLASS="textit">rtp.1</SPAN>. Those are the three RTP sessions logs:
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.1.0.txt
+RTP stream id: rtp.1.0
+Packet source: rxfile 'h323.pcap'
+First seen packet: 14/11/2006#17:57:29 (pcap time)
+Stream peers: 172.16.1.109:5004 =&gt; 172.16.1.105:5012
+RTP ssrc: 268399165
+RTP payload type: 102 (Unknown)
+Last seen packet: 14/11/2006#18:01:39 (pcap time)
+Call length: 4m10s
+Flushed packets: 6254
+Lost packets: 0 (0.00%)
+RTP payload length: 65 bytes (fixed)
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.1.1.txt
+RTP stream id: rtp.1.1
+Packet source: rxfile 'h323.pcap'
+First seen packet: 14/11/2006#17:57:29 (pcap time)
+Stream peers: 172.16.1.105:5012 =&gt; 172.16.1.109:5004
+RTP ssrc: 1910395951
+RTP payload type: 0 (ITU-T G.711 PCMU)
+Probable reverse RTP stream id: rtp.1.0
+Last seen packet: 14/11/2006#18:01:37 (pcap time)
+Call length: 4m8s
+Flushed packets: 4465
+Lost packets: 0 (0.00%)
+RTP payload length: 240 bytes (fixed)
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.1.2.txt
+RTP stream id: rtp.1.2
+Packet source: rxfile 'h323.pcap'
+First seen packet: 14/11/2006#17:57:29 (pcap time)
+Stream peers: 172.16.1.109:5006 =&gt; 172.16.1.105:5014
+RTP ssrc: 267301810
+RTP payload type: 31 (ITU-T H.261)
+Last seen packet: 14/11/2006#18:01:39 (pcap time)
+Call length: 4m10s
+Flushed packets: 2286
+Lost packets: 0 (0.00%)
+RTP payload length: 945 bytes (variable, this is the last seen)
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+
+<P>
+Now, we completely dissect the first packet of the third RTP session with tshark:
+
+<P>
+<PRE>
+xenion@gollum:~/dev/rtpbreak-1.3$ cat logz/rtp.1.2.txt | grep "Stream peers"
+Stream peers: 172.16.1.109:5006 =&gt; 172.16.1.105:5014
+xenion@gollum:~/dev/rtpbreak-1.3$ tshark -r logz/rtp.1.2.pcap -d udp.port==5006,rtp -c 1 -V
+Frame 1 (1073 bytes on wire, 1073 bytes captured)
+    Arrival Time: Nov 14, 2006 17:57:29.972300000
+    [Time delta from previous captured frame: 0.000000000 seconds]
+    [Time delta from previous displayed frame: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Frame Length: 1073 bytes
+    Capture Length: 1073 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:rtp:h261]
+Ethernet II, Src: Dell_15:09:a6 (00:12:3f:15:09:a6), Dst: Dell_ca:ec:cd (00:14:22:ca:ec:cd)
+    Destination: Dell_ca:ec:cd (00:14:22:ca:ec:cd)
+        Address: Dell_ca:ec:cd (00:14:22:ca:ec:cd)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: Dell_15:09:a6 (00:12:3f:15:09:a6)
+        Address: Dell_15:09:a6 (00:12:3f:15:09:a6)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 172.16.1.109 (172.16.1.109), Dst: 172.16.1.105 (172.16.1.105)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 1059
+    Identification: 0x0000 (0)
+    Flags: 0x04 (Don't Fragment)
+        0... = Reserved bit: Not set
+        .1.. = Don't fragment: Set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 64
+    Protocol: UDP (0x11)
+    Header checksum: 0xdbc3 [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 172.16.1.109 (172.16.1.109)
+    Destination: 172.16.1.105 (172.16.1.105)
+User Datagram Protocol, Src Port: wsm-server (5006), Dst Port: 5014 (5014)
+    Source port: wsm-server (5006)
+    Destination port: 5014 (5014)
+    Length: 1039
+    Checksum: 0x5f17 [incorrect, should be 0x270c (maybe caused by "UDP checksum offload"?)]
+        [Good Checksum: False]
+        [Bad Checksum: True]
+Real-Time Transport Protocol
+    10.. .... = Version: RFC 1889 Version (2)
+    ..0. .... = Padding: False
+    ...0 .... = Extension: False
+    .... 0000 = Contributing source identifiers count: 0
+    0... .... = Marker: False
+    Payload type: ITU-T H.261 (31)
+    Sequence number: 42926
+    Timestamp: 3003
+    Synchronization Source identifier: 0x0feeb3b2 (267301810)
+ITU-T Recommendation H.261
+    Start bit position: 0
+    End bit position: 2
+    Intra frame encoded data flag: False
+    Motion vector flag: True
+    GOB Number: 0
+    Macroblock address predictor: 0
+    Quantizer: 0
+    Horizontal motion vector data: 0
+    Vertical motion vector data: 0
+    H.261 stream: 00010006000113220300C0300DFF7FD1019B8103881035C0...
+
+xenion@gollum:~/dev/rtpbreak-1.3$
+</PRE>
+The wrong UDP checksum comes from the original network packet, rtpbreak only reorders the network packets of each RTP stream. As we did, rtpbreak can be used together with tshark/wireshark to handle complex needs.
+
+<P>
+
+<H2><A NAME="SECTION00043000000000000000">
+Particular scenarios</A>
+</H2>
+
+<P>
+Scope: We want to (successfully) handle some particular scenarios. This is a list of problem description, (probable) cause and (hopefully) solution.
+
+<OL>
+<LI><DL>
+<DT><STRONG>Problem</STRONG></DT>
+<DD>An improbable high number of RTP sessions and noise packets is detected.
+</DD>
+<DT><STRONG>Cause</STRONG></DT>
+<DD>There is some type of silence suppression.
+</DD>
+<DT><STRONG>Solution</STRONG></DT>
+<DD>Dilate the timeouts: <PRE>rtpbreak -i eth0 -n -t100 -T100
+</PRE>
+</DD>
+</DL>
+
+<P>
+</LI>
+<LI><DL>
+<DT><STRONG>Problem</STRONG></DT>
+<DD>An expected RTP session is not recognized and some noise packets are detected.
+</DD>
+<DT><STRONG>Cause</STRONG></DT>
+<DD>The conversation has been immediately terminated.
+</DD>
+<DT><STRONG>Solution</STRONG></DT>
+<DD>Reduce the number of required packets for the multiple packets pattern: <PRE>rtpbreak -i eth0 -n -P2
+</PRE>
+</DD>
+</DL>
+
+<P>
+</LI>
+<LI><DL>
+<DT><STRONG>Problem</STRONG></DT>
+<DD>The expected RTP sessions are not recognized.
+</DD>
+<DT><STRONG>Cause</STRONG></DT>
+<DD>The protocol is not RTP, the network interface is not in promisc mode, the conversation is very disturbed, the conversation was immediately terminated.
+</DD>
+<DT><STRONG>Solution</STRONG></DT>
+<DD>Dilate the timeouts and reduce the number of required packets for the multiple packets pattern: <PRE>rtpbreak -i eth0 -m -n -P2 -t100 -T100
+</PRE> This is the most aggressive (and computationally expensive) configuration of the detection heuristics and will always detect any RTP session.
+</DD>
+</DL>
+
+<P>
+</LI>
+</OL>
+
+<P>
+
+<H1><A NAME="SECTION00050000000000000000">
+How it works</A>
+</H1>
+
+<P>
+The RTP sessions are composed by an ordered sequence of RTP packets. Those packets transport the Real Time data using the UDP transport protocol. The RTP packets must respect some well defined rules in order to be considered valid, this characteristic allows us to define a pattern on the single packet that is used to discriminate the captured network traffic from packets that can be RTP and those that securely are not. The fixed RTP header has this format:
+
+<P>
+<PRE>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|V=2|P|X|  CC   |M|     PT      |       sequence number         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                           timestamp                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           synchronization source (SSRC) identifier            |
++=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+|            contributing source (CSRC) identifiers             |
+|                             ....                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+</PRE>
+
+<P>
+The following checks are performed (on each sniffed packet):
+
+<OL>
+<LI>Destination UDP port: The destination UDP port must be even, as specified in [rfc1889]. Beyond this, it must be greater than 1024. This because in the UDP and TCP transport  protocols  the ports &lt;= 1024 are considered privileged and   they can't be used by user applications, like VoIP clients.
+</LI>
+<LI>Minimal packet size: The UDP payload size must be greater than 12 bytes, this is the size of
+  the fixed header always present in any RTP packet.
+</LI>
+<LI>RTP version: The RTP protocol version always used is 2, so the value of the V field
+  in the fixed RTP header must be equal to 2.
+</LI>
+<LI>Padding bit: RTP allows to append some bytes as packet trailer, that must be ignored.   The number of those bytes is specified exactly in the last packet byte. The   P field in the fixed RTP header indicates if this functionality is active.  If active, the RTP payload size is adjusted, checking it to be greater than 0.
+</LI>
+<LI>CSRC list:   RTP allows the RTP Mixer to insert a list of contributing sources. This
+  list, if present, follows immediately the fixed RTP header and it's
+  composed by addresses (of 32 bits), their number is indicated
+  by the CC field in the fixed RTP header. If present, the RTP payload 
+  size is adjusted, checking it to be greater than 0.
+</LI>
+<LI>Extension bit: RTP allows to extend the fixed RTP header. If present, this extension
+  follows the fixed RTP header and the optional CSRC list. His format
+  follows:
+<PRE>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      defined by profile       |           length              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        header extension                       |
+|                             ....                              |
+</PRE>
+
+<P>
+The length field indicates the extension size, header of the extension excluded. His presence is indicated by the X field value. If active, the RTP payload size is adjusted, checking it to be greater than 0.
+
+<P>
+</LI>
+</OL>
+
+<P>
+The UDP packets passing those checks are considered like 
+"maybe RTP" packets. Note that the IP and UDP packet checksums aren't checked because quite often they're erroneously computed by VoIP clients. The UDP packets passing those checks are compared with the already detected RTP sessions (this is called pattern over multiple packets).  The comparison is done considering the following informations:
+
+<OL>
+<LI>SSRC: The value of the SSRC field in the fixed RTP header indicates the 
+  unique identifier of the Sender of the session. His value is constant
+  in all RTP packets of the same session.
+</LI>
+<LI>IP addresses and UDP ports: The IP addresses and the UDP ports of the Sender and Receiver are constant
+  in all RTP packets of the same session.
+</LI>
+<LI>Sequence number: The seq field in the fixed RTP header indicates the packet sequence number,
+  a value that isn't necessarily initialized to 1 but that it's strictly
+  increasing in RTP packets of the same session. It's considered a window of
+  acceptable values for each session, that changes dynamically.
+  This allows to consider the eventuality that some RTP packets may have been lost.
+</LI>
+<LI>Timestamp: The ts field in the fixed RTP header indicates the sampling timestamp
+  of the first byte of the RTP payload, a value strictly increasing in
+  RTP packets of the same session. Also in this case it's considered a window
+  of acceptable values for each session, that changes dynamically.
+  This allows to consider the eventuality that some RTP packets may have been lost.
+</LI>
+</OL>
+
+<P>
+If it's identified a possible session, the UDP packet is inserted in his buffer. If this doesn't happen, a new one is created. When to a session  are assigned a minimal set of UDP packets, it's considered valid  and any UDP packet in his buffer is considered definitely RTP. This must  happen before a timeout, after that the session is considered a false  positive (noise packets) and destroyed.
+
+<P>
+
+<H1><A NAME="SECTION00060000000000000000">
+Dependencies and compilation</A>
+</H1>
+This is a Unix-oriented application written in C. The compilation requires a C compiler like gcc and the following libs: libpcap (&ge;0.7), libnet (&ge;1.1). In debian, you need the following packages (or higher versions):
+
+<UL>
+<LI>libnet1
+</LI>
+<LI>libnet1-dev
+</LI>
+<LI>libpcap0.7
+</LI>
+<LI>libpcap0.7-dev
+</LI>
+</UL>
+
+<P>
+To compile, type "make" in the top directory.
+
+<P>
+In order to decode the RTP streams with <SPAN  CLASS="textit">sox</SPAN>, you need <SPAN  CLASS="textit">sox</SPAN> with the support for the required formats. In debian, you need the following packages:
+
+<P>
+
+<UL>
+<LI>sox
+</LI>
+<LI>libsox-fmt-all
+</LI>
+</UL>
+
+<P>
+
+<H1><A NAME="SECTION00070000000000000000"></A>
+<A NAME="Links"></A>
+<BR>
+Links
+</H1>
+
+<UL>
+<LI>Antifork: <A NAME="tex2html1"
+  HREF="http://www.antifork.org">http://www.antifork.org</A>
+</LI>
+<LI>xenion headquarter: <A NAME="tex2html2"
+  HREF="http://xenion.antifork.org">http://xenion.antifork.org</A>
+</LI>
+<LI>rtpbreak home: <A NAME="tex2html3"
+  HREF="http://xenion.antifork.org/rtpbreak">http://xenion.antifork.org/rtpbreak</A>
+</LI>
+</UL>
+
+<P>
+<BR><HR>
+<ADDRESS>
+xenion - Thu Feb 28 15:22:15 CET 2008
+</ADDRESS>
+</BODY>
+</HTML>

@@ -1,15 +1,22 @@
 Source: rtpbreak
-Section: unknown
+Section: utils
 Priority: extra
 Maintainer: Devon Kearns <dookie@kali.org>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 8.0.0), libpcap-dev, libnet1-dev
 Standards-Version: 3.9.3
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: git://git.debian.org/collab-maint/rtpbreak.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/rtpbreak.git;a=summary
+Homepage: http://dallachiesa.com/code/rtpbreak/
+Vcs-Git: ssh://git@git.kali.org/packages/rtpbreak.git
+Vcs-Browser: http://git.kali.org/gitweb/?p=packages/rtpbreak.git;a=summary
 
 Package: rtpbreak
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Depends: ${shlibs:Depends}, ${misc:Depends}, libpcap0.8, libnet1
+Description: Detects, reconstructs, and analyzes RTP sessions
+ With rtpbreak you can detect, reconstruct and analyze any 
+ RTP session. It doesn't require the presence of RTCP 
+ packets and works independently form the used signaling 
+ protocol (SIP, H.323, SCCP, ...). The input is a sequence 
+ of packets, the output is a set of files you can use as 
+ input for other tools (wireshark/tshark, sox, grep/awk/cut/
+ cat/sed, ...). It supports also wireless (AP_DLT_IEEE802_11) 
+ networks.
